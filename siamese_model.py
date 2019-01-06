@@ -1,8 +1,9 @@
 import tensorflow as tf
 
+BATCH=20
 class SiameseNet:
     def __init__(self, features):
-      (self.image1, self.image2) = features
+      self.image1, self.image2 = tf.split(features, 2, axis=2)
       
     def sub_network(featrues):
         features = tf.reshape(features, [-1, 64, 64, 1])
@@ -49,8 +50,30 @@ class SiameseNet:
         dense2 = sub_network(self.image2)
         l1_dist = tf.reshape(tf.abs(tf.subtract(dense1,dense2)), (BATCH,4096))
     
-        y_ = tf.layers.dense(inputs=l1_dist, units=1, activation= tf.nn.sigmoid)
-        y_ = tf.reshape(y_, (1,))
+        self.y_ = tf.layers.dense(inputs=l1_dist, units=1, activation= tf.nn.sigmoid)
+        self.y_ = tf.reshape(y_, (1,))
         
         return y_
-        
+    
+    def model_fn(features, labels, mode):
+        y=self.SiameseNet(featrues)
+        train_op=None
+        predictions=None
+        loss=None
+        eval_metric_ops=None
+        global_step = tf.train.get_global_step()
+        if(mode==tf.estimator.ModeKeys.EVAL or
+                        mode==tf.estimator.ModeKeys.TRAIN):
+            labels= tf.reshape(labels,(1,)])
+            loss = tf.losses.sigmoid_cross_entropy(
+                    multi_class_labels=labels, logits=y) + tf.losses.get_regularization_loss()
+        if(mode==tf.estimator.ModeKeys.TRAIN):
+            train_op = tf.train.GradientDescentOptimizer(0.001).minimize(loss,global_step = global_step)
+        if(mode == tf.estimator.ModeKeys.EVAL):
+            eval_metric_ops = {"absolute error": tf.metrics.mean_absolute_error(labels, y)}
+        predictions = {"classes": tf.round(y), "probabilities": y}
+
+        return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions,
+                        loss=loss, train_op=train_op, eval_metric_ops=eval_metric_ops)
+
+           
