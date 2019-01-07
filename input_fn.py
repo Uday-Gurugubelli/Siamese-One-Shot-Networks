@@ -27,20 +27,23 @@ def parse_fn(record):
     return img, lbl
 
 def ip_fn():
-#   this repetition of code is required to cover the same images of same class    
+#   this repetition of code is required to cover the same images of same class
+#   repeats forever
+#   small values of shuffle buffer results better number of combinations
+#   new whales in the sense unidentified whales are removed from train set and will added later
     ds1 = tf.data.TFRecordDataset(train_file)
     ds1 = ds1.map(parse_fn)
-    ds1 = ds1.filter(lambda x,y:tf.equal(y,"new_whale"))
-    ds1 = ds1.repeat(100)
-    ds1 = ds1.shuffle(1000)
+#    ds1 = ds1.filter(lambda x,y:tf.equal(y,"new_whale"))
+    ds1 = ds1.repeat()
+    ds1 = ds1.shuffle(10)
     itr1 = ds1.make_one_shot_iterator()
     img1,l1 = itr1.get_next()
 
     ds2 = tf.data.TFRecordDataset(train_file)
     ds2 = ds2.map(parse_fn)
-    ds2 = ds2.filter(lambda x,y:tf.equal(y,"new_whale"))
-    ds2 = ds2.repeat(100)
-    ds2 = ds2.shuffle(1000)
+#    ds2 = ds2.filter(lambda x,y:tf.equal(y,"new_whale"))
+    ds2 = ds2.repeat()
+    ds2 = ds2.shuffle(10)
     itr2 = ds2.make_one_shot_iterator()
     img2,l2 = itr2.get_next()
 
