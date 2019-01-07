@@ -61,15 +61,15 @@ def pred_ip_fn():
     ds1 = tf.data.TFRecordDataset(test_file)
     ds1 = ds1.map(parse_fn)
     ts_itr = ds1.make_one_shot_iterator()
-    img1,l1 = ts_itr.get_next()
 
     ds2 = tf.data.TFRecordDataset(train_file)
     ds2 = ds2.map(parse_fn)
-    ds2 = ds2.filter(lambda x,y:tf.equal(y,"new_whale"))
+#    ds2 = ds2.filter(lambda x,y:tf.equal(y,"new_whale"))
     tr_itr = ds2.make_one_shot_iterator()
-    img2,l2 = tr_itr.get_next()
-   
-    for img1, l1 in ts_itr:
-        for img2, l2 in tr_itr:
-            return (img1,img2), None
+    
+    for _ in range(len(TEST_RECORDS)):   #len of test
+        img1, l1 = ts_itr.get_next()
+        for _, in range(len(TRAIN_RECORDS)):    #len of train
+            img2,l2 = tr_itr.get_next()
+            return (img1, img2), None
      
