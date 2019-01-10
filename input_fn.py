@@ -57,19 +57,26 @@ def ip_fn():
     return f, l
 
 def pred_ip_fn():
-#   this repetition of code is required to cover the same images of same class    
-    ds1 = tf.data.TFRecordDataset(test_file)
-    ds1 = ds1.map(parse_fn)
+    dummy_lables= [1 for i in range(7960)]
+    ds1 = tf.data.Dataset.from_tensor_slices((testfiles, dummy_lables))
+    ds1 = ds1.map(imgprcs, 4)
+    ds1 = ds1.repeat(15697)
     ts_itr = ds1.make_one_shot_iterator()
 
-    ds2 = tf.data.TFRecordDataset(train_file)
-    ds2 = ds2.map(parse_fn)
-#    ds2 = ds2.filter(lambda x,y:tf.equal(y,"new_whale"))
+    ds2 = tf.data.Dataset.from_tensor_slices((trainfiles, labels))
+    ds2 = ds2.map(imgprcs,4)
+    ds2 = ds2.repeat(7690)
     tr_itr = ds2.make_one_shot_iterator()
-    
-    for _ in range(len(TEST_RECORDS)):   #len of test
-        img1, l1 = ts_itr.get_next()
-        for _, in range(len(TRAIN_RECORDS)):    #len of train
-            img2,l2 = tr_itr.get_next()
-            return (img1, img2), None
+
+    def jumble(xy1, xy2):
+        (x1,y1) = xy1
+        (x2,y2) = xy2
+        return (x1,x2),(y1,y2)
+    ds3 = tf.data.Dataset.zip((ds1,ds2))
+    ds3 = ds3.map(jumble)
+    itr = ds3.make_one_shot_iterator()
+
+    imgs, lbls = itr.get_next()
+    #print(imgs)
+    return imgs, None 
      
